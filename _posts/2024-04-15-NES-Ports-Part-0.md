@@ -47,10 +47,11 @@ To accomplish my ports, I follow this general approach:
 3. Hook up the SNES skeleton to jump to the NES initialization/nmi at the proper times
 4. Slowly replace routines of the NES byte code with decompiled assembly, aquired from running the NES game in Mesen2.
 5. Find and modify the NES specific logic and tile graphics to work on the nes.  Especially things like:
-	a. All writes to Video Memory
-    b. Deal with differences in screen resolution / BG size / Mirroring
-    c. Update audio to use Membler's 2A03 emulator
-    d. Properly handle bank switching
+    * All writes to Video Memory
+    * Deal with differences in screen resolution / BG size / Mirroring
+    * Update audio to use Membler's 2A03 emulator
+    * Properly handle bank switching
+
 
 ## (Current) Limitations on my Approach
 
