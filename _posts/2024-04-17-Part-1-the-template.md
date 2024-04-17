@@ -35,7 +35,13 @@ We fake this capability by creating 7 banks of program logic, and copying the 8t
 
 Note that we use banks `21:0000` to `27:0000` for our ported banks, because those banks will be mirrored into `A1` - `A7`, which are FastROM banks, giving us a free speed up.
 
-Now, when we can simulate bank switching by jumping to the appropriate bank.  So, if we were executing code at `21:a122` and we came to an instruction to swap to bank 6, we'd jump over to `27:xxxx`, and bank 6 would be in our `8000` - `BFFF` range.
+Now we can simulate bank switching by jumping to the appropriate bank.  So, if we were executing code at `21:a122` and we came to an instruction to swap to bank 6, we'd jump over to `27:xxxx`, and bank 6 would be in our `8000` - `BFFF` range.
+
+Here's a preview of what that code looks like, but I'll talk more in depth about it next time:
+```
+
+```
+
 
 If you want to read more indepth on what the different mappers are and what they can do, check out the nes dev wiki:  [https://www.nesdev.org/wiki/Mapper](https://www.nesdev.org/wiki/Mapper)
 
