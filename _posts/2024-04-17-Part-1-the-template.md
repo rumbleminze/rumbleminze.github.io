@@ -46,23 +46,23 @@ Before we take a look how we break up the rom into banks, let's take a look at o
 At the start of the file is some standard stuff, defining a lot of unused space:
 
 ```
-    ROM0:       start =   $0000,    size = $10000, fill = yes, type = rw;  
-    EMPTY_SPACE:   start = $010000,      size = $1F0000, fill = yes;
+ROM0:       start =   $0000,    size = $10000, fill = yes, type = rw;  
+EMPTY_SPACE:   start = $010000,      size = $1F0000, fill = yes;
 ```
 
 
 Next up, we define the bank where I put all of my own SNES specific code, this is placed in bank `20:0000`, which as noted above will be used at `A0:0000`:
 
 ```
-    SRAM0:      start = $200000,    size = $8000, type = rw, fill = yes;  
-	ROM1:       start = $208000,    size = $8000, fill = yes;
+SRAM0:      start = $200000,    size = $8000, type = rw, fill = yes;  
+ROM1:       start = $208000,    size = $8000, fill = yes;
 ```
 
 Next up are a series of triplets, one for each NES code bank:
 ```
-	SRAM1:     start = $210000, size = $8000, type = rw, fill = yes, fillval = 1;  
-    PRGA1:     start = $218000, size = $4000, fill = yes;
-    PRGA1C:    start = $21C000, size = $4000, fill = yes;
+SRAM1:     start = $210000, size = $8000, type = rw, fill = yes, fillval = 1;  
+PRGA1:     start = $218000, size = $4000, fill = yes;
+PRGA1C:    start = $21C000, size = $4000, fill = yes;
 ```
 
 Finally, I'll note that we have the CHR ROM banks from `A8-AF`, and a few other banks that I ended up using for various things.  Note that the CHR ROM banks **DO NOT** clone the fixed bank from the NES, as those are read only, and we'll be doing something else with those!
@@ -71,10 +71,10 @@ Finally, I'll note that we have the CHR ROM banks from `A8-AF`, and a few other 
 The Segments part of the config file should be fairly straightforward, we're essentially just laying out our rom as I have described.  Some important segments for SNES games:
 
 ```
-    CODE:       load = ROM0,         start = $00FE00;
-    HEADER:     load = ROM0,         start = $00FFC0;
-    ROMSPEC:    load = ROM0,         start = $00FFD5;
-    VECTOR:     load = ROM0,         start = $00FFE0;
+CODE:       load = ROM0,         start = $00FE00;
+HEADER:     load = ROM0,         start = $00FFC0;
+ROMSPEC:    load = ROM0,         start = $00FFD5;
+VECTOR:     load = ROM0,         start = $00FFE0;
 ```
 
 You shouldn't need to adjust these.
