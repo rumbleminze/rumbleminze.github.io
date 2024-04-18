@@ -133,3 +133,6 @@ Now that we have our bank files created, we'll copy them to the `/src` directory
 
 Now that we've got a game the compiles, it's time to actually start doing conversion stuff.  In the next blog post I'll talk more in depth about the differences between the SNES and NES, and the subroutines that I've built to deal with those differences.
 
+If you want to see the Double Dragon port in the state when this blog post was made, you can check out the `part-1` branch here:
+
+[https://github.com/rumbleminze/double-dragon-snes/tree/part-1](https://github.com/rumbleminze/double-dragon-snes/tree/part-1)
