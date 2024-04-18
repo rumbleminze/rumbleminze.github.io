@@ -35,7 +35,32 @@ We fake this capability by creating 7 banks of program logic, and copying the 8t
 
 Note that we use banks `21:0000` to `27:0000` for our ported banks, because those banks will be mirrored into `A1` - `A7`, which are FastROM banks, giving us a free speed up.
 
-Now, when we can simulate bank switching by jumping to the appropriate bank.  So, if we were executing code at `21:a122` and we came to an instruction to swap to bank 6, we'd jump over to `27:xxxx`, and bank 6 would be in our `8000` - `BFFF` range.
+Now we can simulate bank switching by jumping to the appropriate bank.  So, if we were executing code at `21:a122` and we came to an instruction to swap to bank 6, we'd jump over to `27:xxxx`, and bank 6 would be in our `8000` - `BFFF` range.
+
+Here's a preview of what that code looks like, but I'll talk more in depth about it next time:
+```asm
+; Bank Switches to the Bank in the X register
+@bank_switch_to_x:
+    PHA									; Store A so we don't lose it
+    TXA									; X holds our bank, move it to A
+    INC A								; Calculate the bank to jump to
+    AND #$0F							; by (A + 1) OR #$A0.  
+    ORA #$A0							; Remember bank 0 NES is in bank A1
+    STA BANK_SWITCH_DB					; store that in a work ram byte
+    PHA									; push it to the stack, then pull it as the DB
+    PLB									;
+    LDA #.lobyte(@bank_switch_jump)		; store the low and high bytes of the label below
+    STA BANK_SWITCH_LB					; in the appropriate work ram bytes
+    LDA #.hibyte(@bank_switch_jump)
+    STA BANK_SWITCH_HB
+
+    JML (BANK_SWITCH_LB)				; JuMp Long to the target, we should end up at the 
+										; PLA below, but in the appropriate target bank
+    @bank_switch_jump:
+    PLA									; Pull our stored A
+    RTS
+```
+
 
 If you want to read more indepth on what the different mappers are and what they can do, check out the nes dev wiki:  [https://www.nesdev.org/wiki/Mapper](https://www.nesdev.org/wiki/Mapper)
 
@@ -46,23 +71,23 @@ Before we take a look how we break up the rom into banks, let's take a look at o
 At the start of the file is some standard stuff, defining a lot of unused space:
 
 ```
-    ROM0:       start =   $0000,    size = $10000, fill = yes, type = rw;  
-    EMPTY_SPACE:   start = $010000,      size = $1F0000, fill = yes;
+ROM0:       start =   $0000,    size = $10000, fill = yes, type = rw;  
+EMPTY_SPACE:   start = $010000,      size = $1F0000, fill = yes;
 ```
 
 
 Next up, we define the bank where I put all of my own SNES specific code, this is placed in bank `20:0000`, which as noted above will be used at `A0:0000`:
 
 ```
-    SRAM0:      start = $200000,    size = $8000, type = rw, fill = yes;  
-	ROM1:       start = $208000,    size = $8000, fill = yes;
+SRAM0:      start = $200000,    size = $8000, type = rw, fill = yes;  
+ROM1:       start = $208000,    size = $8000, fill = yes;
 ```
 
 Next up are a series of triplets, one for each NES code bank:
 ```
-	SRAM1:     start = $210000, size = $8000, type = rw, fill = yes, fillval = 1;  
-    PRGA1:     start = $218000, size = $4000, fill = yes;
-    PRGA1C:    start = $21C000, size = $4000, fill = yes;
+SRAM1:     start = $210000, size = $8000, type = rw, fill = yes, fillval = 1;  
+PRGA1:     start = $218000, size = $4000, fill = yes;
+PRGA1C:    start = $21C000, size = $4000, fill = yes;
 ```
 
 Finally, I'll note that we have the CHR ROM banks from `A8-AF`, and a few other banks that I ended up using for various things.  Note that the CHR ROM banks **DO NOT** clone the fixed bank from the NES, as those are read only, and we'll be doing something else with those!
@@ -71,10 +96,10 @@ Finally, I'll note that we have the CHR ROM banks from `A8-AF`, and a few other 
 The Segments part of the config file should be fairly straightforward, we're essentially just laying out our rom as I have described.  Some important segments for SNES games:
 
 ```
-    CODE:       load = ROM0,         start = $00FE00;
-    HEADER:     load = ROM0,         start = $00FFC0;
-    ROMSPEC:    load = ROM0,         start = $00FFD5;
-    VECTOR:     load = ROM0,         start = $00FFE0;
+CODE:       load = ROM0,         start = $00FE00;
+HEADER:     load = ROM0,         start = $00FFC0;
+ROMSPEC:    load = ROM0,         start = $00FFD5;
+VECTOR:     load = ROM0,         start = $00FFE0;
 ```
 
 You shouldn't need to adjust these.
