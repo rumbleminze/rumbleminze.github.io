@@ -55,7 +55,7 @@ Here's a preview of what that code looks like, but I'll talk more in depth about
     STA BANK_SWITCH_HB
 
     JML (BANK_SWITCH_LB)				; JuMp Long to the target, we should end up at the 
-										; PLA in the appropriate target bank
+										; PLA below, but in the appropriate target bank
     @bank_switch_jump:
     PLA									; Pull our stored A
     RTS
