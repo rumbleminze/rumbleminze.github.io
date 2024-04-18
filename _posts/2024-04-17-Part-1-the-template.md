@@ -38,8 +38,27 @@ Note that we use banks `21:0000` to `27:0000` for our ported banks, because thos
 Now we can simulate bank switching by jumping to the appropriate bank.  So, if we were executing code at `21:a122` and we came to an instruction to swap to bank 6, we'd jump over to `27:xxxx`, and bank 6 would be in our `8000` - `BFFF` range.
 
 Here's a preview of what that code looks like, but I'll talk more in depth about it next time:
-```
+```asm
+; Bank Switches to the Bank in the X register
+@bank_switch_to_x:
+    PHA									; Store A so we don't lose it
+    TXA									; X holds our bank, move it to A
+    INC A								; Calculate the bank to jump to
+    AND #$0F							; by (A + 1) OR #$A0.  
+    ORA #$A0							; Remember bank 0 NES is in bank A1
+    STA BANK_SWITCH_DB					; store that in a work ram byte
+    PHA									; push it to the stack, then pull it as the DB
+    PLB									;
+    LDA #.lobyte(@bank_switch_jump)		; store the low and high bytes of the label below
+    STA BANK_SWITCH_LB					; in the appropriate work ram bytes
+    LDA #.hibyte(@bank_switch_jump)
+    STA BANK_SWITCH_HB
 
+    JML (BANK_SWITCH_LB)				; JuMp Long to the target, we should end up at the 
+										; PLA in the appropriate target bank
+    @bank_switch_jump:
+    PLA									; Pull our stored A
+    RTS
 ```
 
 
