@@ -1,3 +1,5 @@
+[front-matter](http://jekyllrb.com/docs/frontmatter/) 
+
 Over the course of porting several NES games, it became apparent that I would be solving the same problem multiple times.  And, because I'm lazy, I didn't want to remember how I did those problems.  For this reason I've created a template that has all the base pieces that I need for porting an NES game.  This blog post will go through the pieces at a high level, and talk about where they're used and why I've set them up the way that I have.
 
 ### The Template Project
