@@ -17,7 +17,7 @@ For the NMI, click on the "run to NMI" button, and you'll be right there!
 
 ![nmi.png]({{site.baseurl}}/images/nmi.png)
 
-With these two addresses handy, we'll update code in our `resetvector.asm` file.  ON line 15, we jump long to the reset vector after we've done all our SNES initialization code:
+With these two addresses handy, we'll update code in our `resetvector.asm` file.  On line 15, we jump long to the reset vector after we've done all our SNES initialization code:
 
 ```
 ; this needs to be the NES game's reset vector
@@ -46,11 +46,12 @@ At a high level, this means translating what the game is trying to accomplish wh
 
 Here's a look at the most common NES registers, how I've seen them be used, and how I adjust their functionality for the SNES. The registers we'll look at first are:
 
+
 1. PPUADDR and PPUDATA
 1. PPUCTRL
-
 1. PPUMASK
 1. Bank Switching
+
 
 **PPUADDR and PPUDATA**
 These two are the most straightforward, as they're the most alike between the two systems.  The biggest difference is that on the NES the PPUADDR register is a "write twice" register, and on the SNES it is split into `VMADDH` and `VMADDL`.  Additionally, instead of `PPUDATA` we'll just be writing to the low byte (`VMDATAL`), until we get to dealing with tile attributes.
