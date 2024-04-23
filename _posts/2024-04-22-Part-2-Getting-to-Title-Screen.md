@@ -2,7 +2,6 @@
 layout: post
 title: NES Ports Part 2
 ---
-## Part 2: Getting to Title Screen
 
 In this post, I'm going to go more in-depth into how I convert the various bits of an NES game to be compatible with the SNES.  This post will be a high level of some of the more straightforward bits.  Later parts will dig into specifics and focus on a few single problems that I run into while porting the games.
 
