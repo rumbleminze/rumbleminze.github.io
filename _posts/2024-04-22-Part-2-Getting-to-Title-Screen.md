@@ -53,7 +53,7 @@ Here's a look at the most common NES registers, how I've seen them be used, and 
 1. Bank Switching
 
 
-**PPUADDR and PPUDATA**
+### PPUADDR and PPUDATA
 These two are the most straightforward, as they're the most alike between the two systems.  The biggest difference is that on the NES the PPUADDR register is a "write twice" register, and on the SNES it is split into `VMADDH` and `VMADDL`.  Additionally, instead of `PPUDATA` we'll just be writing to the low byte (`VMDATAL`), until we get to dealing with tile attributes.
 
 Here's an example from `0x1C321` of Double Dragon writing 0x80 bytes to the PPU:
@@ -95,7 +95,10 @@ There's a lot of other nuances when writing to the video memory, and we'll cover
 1. Writes to 23C0 - 23FF, 27C0 - 27FF, 2BC0 - 2BFF, and 2FC0 - 2FFF on the nes are not writing tiles, they are writing **attributes** for the tiles.  This will show up as garbage if we show it, but luckily we have some tricks up our sleeves to hide it.  
 2. Writes to 3F00 through 3F1F are writing **palette** data.  We'll need to handle that differently too (future blog post!)
 
-**PPUCTRL ($2000)** - The PPU Control on the NES handles the following functions:
+### PPUCTRL ($2000)
+
+The PPU Control on the NES handles the following functions:
+
     1. Enable or Disable NMI
     2. PPU Master - Slave Select
     3. Sprite Size
