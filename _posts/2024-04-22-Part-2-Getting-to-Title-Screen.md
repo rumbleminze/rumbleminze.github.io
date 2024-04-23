@@ -1,5 +1,6 @@
 ---
 layout: post
+title: NES Ports Part 2
 ---
 ## Part 2: Getting to Title Screen
 
