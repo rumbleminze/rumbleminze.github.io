@@ -26,7 +26,7 @@ JML $A1FFE0
 
 Note we're jumping to the `$A1` bank, because the game loads bank 0 in the `8000` to `BFFF` region initially.
 
-Then we update the code in the nmi block to jump to the proper place after NMI.  This is a bit more complicate, but this should be the only part that needs to be updated:
+Then we update the code in the nmi block to jump to the proper place after NMI.  This is a bit more complicated, but this should be the only part that needs to be updated.  It sets up an indirect long jump to the last active NES bank:
 
 ```
 ; Double Dragon NMI is at FF16
