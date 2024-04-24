@@ -285,5 +285,4 @@ Then I do the conversion as discussed above.  Rinse and repeat (a bunch) until I
 
 There's likely a few other things I ran into and didn't talk about while I got the port to this state, but you can check out the current iteration in the `part-2-title-screen-intro` branch here:
 
-
-https://github.com/rumbleminze/double-dragon-snes/tree/part-2-title-screen-intro
+[https://github.com/rumbleminze/double-dragon-snes/tree/part-2-title-screen-intro](https://github.com/rumbleminze/double-dragon-snes/tree/part-2-title-screen-intro)
