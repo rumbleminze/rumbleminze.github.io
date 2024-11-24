@@ -53,9 +53,131 @@ If we think about what the NES can have loaded, we have 8 KB of Tile RAM, which 
 
 The MMC3 allows for one of these halves to be swapped in four 1 KB banks, and the other half to be swapped in two 2 KB banks.  For Double Dragon, the background tiles are the four 1KB banks, and the sprite tiles are the two 2 KB banks.  You can see how it leverages this here:
 
+![mmc3spriteswapexample.gif]({{site.baseurl}}/_posts/mmc3spriteswapexample.gif)
+
+You can see as the last enemey is defeated, the NES swaps out the 2nd half of the sprite tiles with the tiles needed to show the "go this way" sprites, then as the next enemy is appearing, it loads that enemy's sprite tiles.
+
+This is actually how Double Dragon II uses this feature for the entire game.  The player sprite tiles are _always_ in the first half of the sprite tile memory, and whatever enemy you're fighting is in the 2nd half (or other miscellaneous sprites like the hand or spikes).
+
+Additionally, when the game loads BG Tiles into the four slots it has allocated, it does so in much the same way as the PRG Rom loading that we saw above:
+
+```
+  STX $049C
+  INX
+  STX $049D
+  INX
+  STX $049E
+  INX
+  STX $049F
+  JSR $FEB4 ; load the 4 banks for BG tiles from 049C - 049F
+```
+
+So, joyfully, we do not have to worry about handling the 1KB bank switches, as we're always loading the full 4 KB.
+
+### Approximating Sprite Bank Swapping in the SNES
+
+Now that we know how the NES game does it, how are we going to approximate this behavior on the SNES?  We don't have the ability to instantly swap out VRAM and CHROM.
+
+First, let's take a look at how the SNES OAM utilizes Video RAM.  The SNES has 32 KB of VRAM.  Let's just break these up into 8 4KB "pages":
+
+```
+0 - 0000 - 1FFF
+1 - 2000 - 3FFF
+2 - 4000 - 5FFF
+3 - 6000 - 7FFF
+4 - 8000 - 9FFF
+5 - A000 - BFFF
+6 - C000 - DFFF
+7 - EFFF - FFFF
+```
+
+We need _at least_ one of the pages for BG tiles.  It seems like that will be enough, as the background tiles don't change in the middle of the level.  We'll use slot 1 for that.  We also need 1 KB for two screens worth of Background.  We'll use a full 2 KB just to have some spare (and because pretty much everything has to be aligned with one of these 7 boundries anyway).
+
+That leaves us with:
+```
+0 - 0000 - 1FFF
+1 - 2000 - 3FFF - BG Tiles
+2 - 4000 - 5FFF - BG1
+3 - 6000 - 7FFF
+4 - 8000 - 9FFF
+5 - A000 - BFFF
+6 - C000 - DFFF
+7 - EFFF - FFFF
+```
+
+Sprite (OAM) tiles can only start on any 16 KB boundry, meaning 0, 2, 4, or 6 in our table.  Additionally, Sprite Tiles are split up into two "name tables".  Each sprite has an attribute that defines if it should load from the first 8KB table or the second 8KB table.  Additionally, we can define the offset of the 2nd table as being `2000`, `4000` `6000`, or `8000` byte offset.  Note that this will wrap around from 7 to 0 also.  So, we can starte our sprite tils at slot 4, and go from there:
+
+```
+0 - 0000 - 1FFF - Sprite Nametbale 1 offset 11
+1 - 2000 - 3FFF - BG Tiles
+2 - 4000 - 5FFF - BG1
+3 - 6000 - 7FFF
+4 - 8000 - 9FFF - Sprite Nametable 0
+5 - A000 - BFFF - Sprite Nametbale 1 offset 00
+6 - C000 - DFFF - Sprite Nametbale 1 offset 01
+7 - EFFF - FFFF - Sprite Nametbale 1 offset 10
+```
+
+Because each of the Double Dragon CHROM banks that was being swapped was 2 KB of 2bpp NES tiles (which is 4 KB of 4bpp SNES tiles), we can fit 2 of them in each slot.  Since the two that we'll need the most are the player sprites and the between fight sprites, we'll load those two into slot 4.  We'll then fill the rest with some of the enemy sprites for now.  Later on we'll optimize this, but the idea would be to load the sprites needed for a level inbetween level loads, when the screen is off anyway.  Once we've loaded them, our VRAM will look like this:
+
+```
+0 - 0000 - 1FFF - Abore / Barnov sprites
+1 - 2000 - 3FFF - BG Tiles
+2 - 4000 - 5FFF - BG1
+3 - 6000 - 7FFF
+4 - 8000 - 9FFF - Player / between fight sprites
+5 - A000 - BFFF - Roper / Linda sprites
+6 - C000 - DFFF - William / Right Hand Sprites
+7 - EFFF - FFFF - Chin / Abobo Sprites
+```
+
+We would initialize our OAM OBJ with:
+
+```
+lda %00000010
+sta OBSEL
+```
+
+This sets the start of sprite tiles to 8000 (4000 WORD address), with the 2nd page at A000.  
+
+This would result in this OAM Layout:
+
+![oamtilelayout1.png]({{site.baseurl}}/_posts/oamtilelayout1.png)
+
+Then, let's say the game progressed, and needed to load William's sprites.
+
+we'd switch the offset of the 2nd page to `01` so that `C000-DFFF` were available:
+
+```
+lda %00001010
+sta OBSEL
+```
+
+now our OAM2 is updated:
+![oamtilelayout2.png]({{site.baseurl}}/_posts/oamtilelayout2.png)
+
+And our sprite tiles for William are available!
+
+### Still to do
+
+This doesn't solve _everything_.  We'll still need to add some logic when we convert our NES Object Data into our SNES format.  We already need to do some conversions there, but essentially, what we'll need to do is some logic like this:
+
+```
+; is this a player sprite?  if so do not adjust it, it is always in the same spot as the NES game
+
+; non-player sprite handling
+   ; what is the active enemy?
+   ; is that enemy sprite sheet 
+   		; the 2nd page of OAM1 ? use value unmodified
+        ; the 1st half of OAM2 ? subtract $80 from the tile address, use the 2nd nametable
+        ; the 2nd half of OAM2 ? do not modify the tile address, use the 2nd nametable
+```
+
+We'll keep track of what the active enemy sprite sheet is as we load different enemy sprite tables, making this logic as fast as possible (since it'll need to happen _every frame_)
 
 
-### Approximating it in the SNES
+## Conclusion
 
+While this isn't a complete covering of everything I need to do for Double Dragon II, it does solve a lot of the big concerns with the port being achievable.  It means that I can keep 10 different "banks" of sprite tiles available for any one section.  But it's possible there's a section of the game that uses more than 10.  If so I'll need to swap them out at an inoptimal time, possibly causing a pause or flickering.  
 
-
+Additionaly, we haven't touched on the usage of IRQ yet to draw the HUD, which is a different approach than the first Double Dragon, which used Sprite 0 detection.
