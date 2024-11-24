@@ -1,8 +1,6 @@
 ---
 layout: post
 ---
-## MMC3 CHROM Bank Swapping Approximation on the SNES
-
 In this post, I'm going to describe some currently in progress work that I'm doing while I attempt to port the NES game Double Dragon II: The Revenge to the SNES.  
 
 ### MMC3 Bank Swap Feature
