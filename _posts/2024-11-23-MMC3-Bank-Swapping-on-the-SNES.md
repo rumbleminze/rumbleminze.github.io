@@ -54,7 +54,8 @@ If we think about what the NES can have loaded, we have 8 KB of Tile RAM, which 
 
 The MMC3 allows for one of these halves to be swapped in four 1 KB banks, and the other half to be swapped in two 2 KB banks.  For Double Dragon, the background tiles are the four 1KB banks, and the sprite tiles are the two 2 KB banks.  You can see how it leverages this here:
 
-![mmc3spriteswapexample.gif]({{site.baseurl}}/_posts/mmc3spriteswapexample.gif)
+![mmc3spriteswapexample.gif]({{site.baseurl}}/images/mmc3spriteswapexample.gif)
+
 
 You can see as the last enemey is defeated, the NES swaps out the 2nd half of the sprite tiles with the tiles needed to show the "go this way" sprites, then as the next enemy is appearing, it loads that enemy's sprite tiles.
 
@@ -143,7 +144,8 @@ This sets the start of sprite tiles to 8000 (4000 WORD address), with the 2nd pa
 
 This would result in this OAM Layout:
 
-![oamtilelayout1.png]({{site.baseurl}}/_posts/oamtilelayout1.png)
+![oamtilelayout1.png]({{site.baseurl}}/images/oamtilelayout1.png)
+
 
 Then, let's say the game progressed, and needed to load William's sprites.
 
@@ -155,7 +157,9 @@ sta OBSEL
 ```
 
 now our OAM2 is updated:
-![oamtilelayout2.png]({{site.baseurl}}/_posts/oamtilelayout2.png)
+
+![oamtilelayout2.png]({{site.baseurl}}/images/oamtilelayout2.png)
+
 
 And our sprite tiles for William are available!
 
